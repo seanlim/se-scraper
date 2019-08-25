@@ -3,12 +3,10 @@ const {promisify} = require('util');
 const request = promisify(require('request').defaults({jar: true}));
 
 // URLs
-const courseURL = id =>
-	`https://explorer.smartco.cloud/admin/page/classes/class?id=${id}`;
 const moduleURL = id =>
-	`https://explorer.smartco.cloud/admin/page/classes/topic?topicID=${id}`;
+	`https://explorer.smartco.cloud/admin/page/classes/class?id=${id}`;
 const componentURL = id =>
-	`https://explorer.smartco.cloud/admin/page/classes/lesson?lessonID=${id}`;
+	`https://explorer.smartco.cloud/admin/page/classes/topic?topicID=${id}`;
 
 function getData(body) {
 	let results = body.match(/\(\[(.*?)\]/g);
@@ -18,16 +16,21 @@ function getData(body) {
 function run(url) {
 	request({url: url, headers: {cookie: process.env.COOKIE}})
 		.then(({body}) => {
-			// Find modules
 			const modules = getData(body);
-			console.info(modules);
 
-			// Find components
-
-			// Parse components
+			return Promise.all(
+				modules.map(m =>
+					request({
+						url: componentURL(m.id),
+						headers: {cookie: process.env.COOKIE},
+					}),
+				),
+			);
 		})
+		.then(results => results.map(({body}) => getData(body))) // Map component data
+		.then(components => {})
 		.catch(console.error);
 }
 
 // Scrape SE class
-run(courseURL('438'));
+run(moduleURL('438'));
