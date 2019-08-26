@@ -14,7 +14,8 @@ function getData(body) {
 	if (results.length < 1) return null;
 	return JSON.parse(results[0].substr(1));
 }
-async function run(url) {
+
+function run(url) {
 	request({url: url, headers: {cookie: process.env.COOKIE}})
 		.then(async ({body}) => {
 			const modules = getData(body);
